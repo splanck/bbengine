@@ -5,7 +5,7 @@
 *.userosscache
 *.sln.docstates
 .vs
-out/build
+out
 
 # Build directories
 [Dd]ebug/
