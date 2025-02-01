@@ -7,11 +7,7 @@ set(CMAKE_CXX_STANDARD_REQUIRED ON)
 
 # Create a library target from the source files
 add_library(BaseballEngine
-    src/Player.cpp
-    src/Team.cpp
-    src/League.cpp
-    src/SimulationManager.cpp
-    src/Game.cpp
+    src/BEPlayer_Attributes.cpp
 )
 
 # Specify the include directories for this library
