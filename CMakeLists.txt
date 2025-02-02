@@ -7,12 +7,14 @@ set(CMAKE_CXX_STANDARD_REQUIRED ON)
 
 # Create a library target from the source files
 add_library(BaseballEngine
-    src/BEPlayer_Attributes.cpp
+    src/PlayerAttributes.cpp
+    src/PlayerStats.cpp
 )
 
 # Specify the include directories for this library
 target_include_directories(BaseballEngine PUBLIC
     \/include
+    includes
 )
 
 # Optionally create a test executable

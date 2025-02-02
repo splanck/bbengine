@@ -6,6 +6,9 @@
 *.sln.docstates
 .vs
 out
+build
+.vscode
+.idea
 
 # Build directories
 [Dd]ebug/
