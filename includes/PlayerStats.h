@@ -5,7 +5,6 @@
 
 namespace BBEngine
 {
-
     /// Represents the statistics for a single season.
     struct SeasonStats
     {
