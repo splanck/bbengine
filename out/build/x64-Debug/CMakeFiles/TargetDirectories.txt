@@ -1,4 +1,0 @@
-C:/UE5/Baseball/BBEngine/out/build/x64-Debug/CMakeFiles/BaseballEngine.dir
-C:/UE5/Baseball/BBEngine/out/build/x64-Debug/CMakeFiles/BaseballEngineTest.dir
-C:/UE5/Baseball/BBEngine/out/build/x64-Debug/CMakeFiles/edit_cache.dir
-C:/UE5/Baseball/BBEngine/out/build/x64-Debug/CMakeFiles/rebuild_cache.dir
