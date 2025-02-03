@@ -10,6 +10,7 @@ add_library(BaseballEngine
     src/PlayerAttributes.cpp
     src/PlayerStats.cpp
     src/Player.cpp
+    src/BoxScore.cpp
 )
 
 # Specify the include directories for this library
