@@ -12,7 +12,7 @@ namespace BBEngine
     struct BoxScoreBattingLine
     {
         Player* player = nullptr; // Pointer to the actual Player instance
-        int battingOrder = -1;    // 1-based or 0-based, up to you
+        int battingOrder = -1;    // Typically 1-based in baseball
         int atBats = 0;
         int runs = 0;
         int hits = 0;
@@ -22,6 +22,7 @@ namespace BBEngine
         int runsBattedIn = 0;
         int walks = 0;
         int strikeouts = 0;
+        bool active = true; // If set to false, it means this slot was replaced (e.g., pinch hitter)
         // ... add more single-game stats as needed (SB, HBP, SF, etc.)
     };
 
@@ -73,14 +74,31 @@ namespace BBEngine
         // -----------------------------------------------------
         // Methods to Manage Batting Lines (Lineup & Statistics)
         // -----------------------------------------------------
-        // Add a batter to either the home or away lineup.
-        // 'battingOrder' can be 1-based (traditional) or 0-based; your choice.
-        // This will create a new BoxScoreBattingLine entry for that player.
+
+        /**
+         * Add a batter to either the home or away lineup.
+         *  - 'battingOrder' is typically 1..9 in traditional baseball, but you can adapt as needed.
+         *  - If that battingOrder is already taken by another active batter, this throws an exception.
+         */
         void addBatterToLineup(TeamSide side, Player* player, int battingOrder);
 
-        // Update hitting stats for a single at-bat or plate appearance.
-        // This function increments stats in the player's BoxScoreBattingLine.
-        // Example usage: recordAtBat(TeamSide::Home, 3, /* hits=1, ... */);
+        /**
+         * Replace an existing batter (e.g., pinch hitter) in the same battingOrder.
+         *  - The existing BoxScoreBattingLine is marked inactive (active=false).
+         *  - A new BoxScoreBattingLine is inserted for the new player at the same battingOrder.
+         */
+        void replaceBatter(TeamSide side, Player* newPlayer, int battingOrder);
+
+        /**
+         * Retrieve the next batter in the lineup, based on an internal "next batter index" for each team.
+         *  - This increments the index and wraps around after the last batter in the lineup.
+         *  - Skips any inactive batting slots (e.g., someone replaced by a pinch hitter).
+         */
+        Player* getNextBatter(TeamSide side);
+
+        /**
+         * Record hitting stats for a single at-bat.
+         */
         void recordAtBat(TeamSide side,
                          int battingOrder,
                          int atBats = 1,
@@ -93,8 +111,6 @@ namespace BBEngine
                          int strikeouts = 0,
                          int runsScored = 0);
 
-        // Convenience functions if you want simpler calls:
-        // e.g. recordWalk(TeamSide::Home, 4); // if the 4th batter just walked
         void recordWalk(TeamSide side, int battingOrder);
         void recordStrikeout(TeamSide side, int battingOrder);
         void recordHit(TeamSide side, int battingOrder,
@@ -113,12 +129,7 @@ namespace BBEngine
         // -------------------------------------------------------
         // Methods to Manage Pitching Lines (Appearance & Updates)
         // -------------------------------------------------------
-        // Add a pitcher for home or away side. The next appearanceOrder is assigned automatically.
-        // Or you could pass in the appearanceOrder if you want explicit control.
         void addPitcher(TeamSide side, Player* pitcher);
-
-        // Incrementally update a pitcher's stats, e.g., after an inning or partial inning.
-        // You can handle partial innings with decimals (0.1 = 1 out, 0.2 = 2 outs).
         void recordPitching(TeamSide side,
                             int appearanceOrder,
                             double inningsPitchedDelta,
@@ -127,15 +138,12 @@ namespace BBEngine
                             int earnedRuns,
                             int walksAllowed,
                             int strikeouts);
-
-        // Mark a pitcher with a decision if applicable (win, loss, save).
         void assignPitchingDecision(TeamSide side,
                                     int appearanceOrder,
                                     bool win,
                                     bool loss,
                                     bool save);
 
-        // Access to pitching lines
         const std::vector<BoxScorePitchingLine>& getHomePitchingLines() const;
         const std::vector<BoxScorePitchingLine>& getAwayPitchingLines() const;
 
@@ -146,6 +154,9 @@ namespace BBEngine
 
         // Helper to find a reference to a pitching line by appearance order.
         BoxScorePitchingLine& findPitchingLine(TeamSide side, int appearanceOrder);
+
+        // Retrieve the vector of batting lines for the requested side (home/away).
+        std::vector<BoxScoreBattingLine>& getBattingLines(TeamSide side);
 
     private:
         // Basic game info
@@ -165,6 +176,11 @@ namespace BBEngine
         // Keep track of the next appearance order for home and away pitchers
         int nextHomePitcherOrder = 0;
         int nextAwayPitcherOrder = 0;
+
+        // Track the "next batter" index for each team.
+        // This is an index in the sorted order of active batting lines (not necessarily the vector index).
+        int homeNextBatterIndex = 0;
+        int awayNextBatterIndex = 0;
     };
 
 } // namespace BBEngine

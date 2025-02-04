@@ -36,28 +36,90 @@ namespace BBEngine
         if (!player)
             throw std::invalid_argument("Player pointer is null.");
 
-        std::vector<BoxScoreBattingLine>* lineup = nullptr;
-        if (side == TeamSide::Home)
-            lineup = &homeBattingLines;
-        else
-            lineup = &awayBattingLines;
+        auto& lineup = getBattingLines(side);
 
-        // Check if there's an existing line for this batting order
-        auto it = std::find_if(lineup->begin(), lineup->end(),
+        // Check if there's an existing *active* line for this batting order
+        auto it = std::find_if(lineup.begin(), lineup.end(),
             [battingOrder](const BoxScoreBattingLine& line) {
-                return line.battingOrder == battingOrder;
+                return line.battingOrder == battingOrder && line.active;
             });
 
-        if (it != lineup->end())
+        if (it != lineup.end())
         {
-            throw std::runtime_error("A batter is already assigned to this batting order.");
+            throw std::runtime_error("A batter is already active at this batting order.");
         }
 
         // Create a new line and add it
         BoxScoreBattingLine newLine;
         newLine.player = player;
         newLine.battingOrder = battingOrder;
-        lineup->push_back(newLine);
+        newLine.active = true;
+        lineup.push_back(newLine);
+
+        // Keep the batting lines sorted by battingOrder for convenience
+        std::sort(lineup.begin(), lineup.end(), 
+                  [](const BoxScoreBattingLine& a, const BoxScoreBattingLine& b){
+                      return a.battingOrder < b.battingOrder;
+                  });
+    }
+
+    void BoxScore::replaceBatter(TeamSide side, Player* newPlayer, int battingOrder)
+    {
+        if (!newPlayer)
+            throw std::invalid_argument("New player pointer is null.");
+
+        BoxScoreBattingLine& oldLine = findBattingLine(side, battingOrder);
+        // Mark the old line inactive
+        oldLine.active = false;
+
+        // Add the new line at the same batting order
+        addBatterToLineup(side, newPlayer, battingOrder);
+    }
+
+    Player* BoxScore::getNextBatter(TeamSide side)
+    {
+        auto& lineup = getBattingLines(side);
+        if (lineup.empty())
+        {
+            throw std::runtime_error("No batters in the lineup.");
+        }
+
+        // Decide which index to advance
+        int& nextIndex = (side == TeamSide::Home) ? homeNextBatterIndex : awayNextBatterIndex;
+
+        // Make sure nextIndex isn't negative; if it is, start from 0
+        if (nextIndex < 0)
+            nextIndex = 0;
+
+        // We'll attempt to find the next active batter within one full loop of the lineup size
+        const int lineupSize = static_cast<int>(lineup.size());
+        for (int attempt = 0; attempt < lineupSize; ++attempt)
+        {
+            // Wrap around if needed
+            if (nextIndex >= lineupSize)
+            {
+                nextIndex = 0;
+            }
+
+            // Check if this batting slot is active
+            auto& bLine = lineup[nextIndex];
+            if (bLine.active)
+            {
+                // Found the next active batter
+                Player* batter = bLine.player;
+                // Move index forward for next call
+                nextIndex = (nextIndex + 1) % lineupSize;
+                return batter;
+            }
+            else
+            {
+                // Skip inactive slot and keep searching
+                nextIndex = (nextIndex + 1) % lineupSize;
+            }
+        }
+
+        // If we exit the loop, it means no active batters were found
+        throw std::runtime_error("No active batters remain in the lineup!");
     }
 
     void BoxScore::recordAtBat(TeamSide side,
@@ -144,22 +206,29 @@ namespace BBEngine
         return totalRuns;
     }
 
+    // -----------------------------------------
+    // Internal Helpers for Batting Lines
+    // -----------------------------------------
     BoxScoreBattingLine& BoxScore::findBattingLine(TeamSide side, int battingOrder)
     {
-        std::vector<BoxScoreBattingLine>* lineup =
-            (side == TeamSide::Home) ? &homeBattingLines : &awayBattingLines;
+        auto& lineup = getBattingLines(side);
 
-        auto it = std::find_if(lineup->begin(), lineup->end(),
+        auto it = std::find_if(lineup.begin(), lineup.end(),
             [battingOrder](BoxScoreBattingLine& line) {
-                return line.battingOrder == battingOrder;
+                return line.battingOrder == battingOrder && line.active;
             });
 
-        if (it == lineup->end())
+        if (it == lineup.end())
         {
-            throw std::runtime_error("No batter found with that batting order.");
+            throw std::runtime_error("No active batter found with that batting order.");
         }
 
         return *it;
+    }
+
+    std::vector<BoxScoreBattingLine>& BoxScore::getBattingLines(TeamSide side)
+    {
+        return (side == TeamSide::Home) ? homeBattingLines : awayBattingLines;
     }
 
     // -------------------------------------------------
@@ -243,4 +312,5 @@ namespace BBEngine
         }
         return *it;
     }
-}
+
+} // namespace BBEngine
