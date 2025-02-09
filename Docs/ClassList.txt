@@ -1,0 +1,101 @@
+BattingOrder
+
+Purpose: Manages the active batting lineup during a game.
+Key Data: An ordered list of Player*, a pointer or index to the next batter, methods for pinch-hitting.
+Responsibilities: Returns the next batter when called, updates order after substitutions, wraps to the top after the last slot.
+
+BoxScore
+
+Purpose: Stores single-game stats for each player and team totals.
+Key Data: A record of every at-bat outcome (hits, runs, strikeouts, innings pitched, etc.), final score, errors.
+Responsibilities: Allows updates (e.g., recordHit, recordWalk), and provides a final summary of the game stats.
+
+GameManager
+
+Purpose: Orchestrates a complete baseball game (pitch-by-pitch), using the Simulator and updating the BoxScore.
+Key Data: References to home and away teams, their batting orders or lineups, current inning, outs, and base runners.
+Responsibilities: Calls simulatePitch() repeatedly until the at-bat ends, advances outs/innings, determines when the game is over, records the final result.
+
+InjuryManager
+
+Purpose: Handles injuries for players, including random events and recovery tracking.
+Key Data: A list or map of injured players, severity, estimated return date.
+Responsibilities: Integrates with the league or game flow to remove injured players from lineups, track rehab time, and re-enable players when recovered.
+
+League
+
+Purpose: The top-level container for teams (across MLB, AAA, AA, A) and multiple seasons.
+Key Data: Collections of Team objects, references to StatsManager, InjuryManager, TradeManager, possibly a list of Seasons.
+Responsibilities: Manages the overall progression of the baseball world, can advance day-by-day through a season, coordinate multi-year play.
+
+Player
+
+Purpose: Represents an individual baseball player, referencing attributes and stats.
+Key Data: Name, age, handedness, PlayerAttributes*, PlayerStats*.
+Responsibilities: The fundamental entity for rosters, trades, in-game appearances, and statistics tracking.
+
+PlayerAttributes
+
+Purpose: Holds skill ratings (1–99) used in simulations (pitching, hitting, fielding, speed).
+Key Data: Contact, Power, PitchVelocity, PitchControl, ReactionTime, etc.
+Responsibilities: Provide raw abilities for computing probabilities (strikeouts, hits, etc.) in the Simulator.
+
+PlayerStats
+
+Purpose: Stores a player’s performance data (season-by-season or career totals).
+Key Data: Hits, HR, RBI, innings pitched, ERA, plus derived stats (AVG, OBP, etc.).
+Responsibilities: Updates after each game (via BoxScore), provides methods to compute or retrieve advanced statistics.
+
+Schedule
+
+Purpose: Defines and generates all matchups for a season, tracks game results.
+Key Data: A list of game entries (date, homeTeam, awayTeam, stadium, final scores once completed).
+Responsibilities: Creates the season schedule (e.g., 162 games), returns daily matchups, records results, and passes them to Standings or Season.
+
+Season
+
+Purpose: Encapsulates everything for a single year/season.
+Key Data: A pointer to a Schedule, a Standings object, references to the active teams for that season.
+Responsibilities: Runs through the schedule, updates standings, finalizes champion or postseason if applicable.
+
+Simulator
+
+Purpose: Performs pitch-by-pitch calculations, factoring in player attributes and stadium dimensions.
+Key Data: May store or reference the current pitcher, random engine, or accept them as parameters.
+Responsibilities: Given the game context (batter, pitcher, stadium, ball-strike count), returns the pitch outcome (ball, strike, foul, in-play with distance, etc.).
+
+Stadium (or Ballpark)
+
+Purpose: Defines the environment for a team’s home field.
+Key Data: Dimensions (LF line, CF, RF), wall heights, altitude, wind factors.
+Responsibilities: Helps the Simulator determine if a ball hit 345 feet is a HR or off the wall, apply park factors for hits/homers.
+
+Standings
+
+Purpose: Summarizes team performance in a season (wins, losses, games behind, etc.).
+Key Data: Records for each team, possibly subdivided by division or league level.
+Responsibilities: Updates whenever a game result is recorded (via Schedule), provides ranking and playoff eligibility.
+
+StartingRotation
+
+Purpose: Manages a set of starting pitchers (4, 5, or 6) and an index for who pitches next.
+Key Data: An array/vector of Player* for the starters, int nextStarterIndex.
+Responsibilities: Returns the correct pitcher for the next start, advances the index after each game, supports flexible rotation sizes.
+
+StatsManager
+
+Purpose: Provides league-wide or team-wide statistical queries (leaders in AVG, HR, ERA, etc.).
+Key Data: Can scan through all PlayerStats or maintain specialized data structures for quick lookups.
+Responsibilities: Accesses every player’s stats to produce leaderboards, all-time records, or advanced metrics.
+
+Team
+
+Purpose: Represents a baseball club at a particular level, holding a full roster of players.
+Key Data: Name, level, roster, lineups vs. RHP/LHP, a StartingRotation, manager record, etc.
+Responsibilities: Selects daily lineups, decides the next starter, updates internal stats, can be managed by TradeManager or InjuryManager.
+
+TradeManager
+
+Purpose: Oversees trades, free-agent signings, and contractual moves among teams.
+Key Data: Potential references to all teams’ rosters, a list of free agents.
+Responsibilities: Facilitates deals, updates rosters, ensures transactions are valid (financial, roster limits, etc.).

@@ -1,39 +1,101 @@
 #pragma once
 
 #include <string>
-#include "PlayerAttributes.h" // Assumes this file defines the PlayerAttributes class.
-#include "PlayerStats.h"      // Assumes this file defines the PlayerStats class.
+#include <memory>   // if you want to use smart pointers
+#include <cassert>  // or <stdexcept> for validations
+
+#include "PlayerAttributes.h"
+#include "PlayerStats.h"
 
 namespace BBEngine
 {
+    // Simple enum for batting/throwing handedness
+    enum class Handedness
+    {
+        Left,
+        Right,
+        Switch
+    };
 
+    /**
+     * The Player class represents a single real-world (or fictional) baseball player
+     * with personal info, skill ratings (PlayerAttributes), and performance data (PlayerStats).
+     */
     class Player
     {
     public:
-        // Default constructor.
-        Player();
+        // ----------------------------------------------------------------
+        // Constructor(s)
+        // ----------------------------------------------------------------
+        /**
+         * Main constructor that accepts name, age, handedness,
+         * plus pointers to PlayerAttributes & PlayerStats.
+         *
+         * If your design demands non-nullptr for attributes/stats,
+         * consider throwing if they're null.
+         */
+        Player(const std::string& name,
+            int age,
+            Handedness handedness,
+            PlayerAttributes* attr,
+            PlayerStats* stats);
 
-        // Constructor that initializes the player with a name.
-        Player(const std::string & name);
+        /**
+         * Optional constructor that sets default PlayerAttributes / PlayerStats
+         * if none are provided. If you want a simpler approach.
+         */
+        Player(const std::string& name,
+            int age,
+            Handedness handedness);
 
-        // Get the player's name.
-        const std::string & getName() const;
+        // ----------------------------------------------------------------
+        // Accessors / Mutators for Personal Info
+        // ----------------------------------------------------------------
+        const std::string& getName() const;
+        void setName(const std::string& newName);
 
-        // Set the player's name.
-        void setName(const std::string & name);
+        int getAge() const;
+        void setAge(int newAge);
 
-        // Accessor for the player's attributes.
-        PlayerAttributes & getAttributes();
-        const PlayerAttributes & getAttributes() const;
+        Handedness getHandedness() const;
+        void setHandedness(Handedness newHandedness);
 
-        // Accessor for the player's statistics.
-        PlayerStats & getStats();
-        const PlayerStats & getStats() const;
+        // ----------------------------------------------------------------
+        // Accessors for Attributes & Stats
+        // ----------------------------------------------------------------
+        PlayerAttributes* getAttributes() const;
+        void setAttributes(PlayerAttributes* newAttr);
+
+        PlayerStats* getStats() const;
+        void setStats(PlayerStats* newStats);
+
+        // ----------------------------------------------------------------
+        // Optional Fields (position, isActive, etc.)
+        // ----------------------------------------------------------------
+        const std::string& getPosition() const;
+        void setPosition(const std::string& pos);
+
+        bool isActive() const;
+        void setActive(bool activeStatus);
+
+        // ----------------------------------------------------------------
+        // Optional: If you track aging or development within the Player
+        // ----------------------------------------------------------------
+        void incrementAge();
 
     private:
-        std::string name;
-        PlayerAttributes attributes;
-        PlayerStats stats;
+        // Basic personal info
+        std::string  name;
+        int          age;
+        Handedness   handedness;
+
+        // Skill ratings and stats
+        PlayerAttributes* attributes;  ///< pointer to the player's skill ratings
+        PlayerStats* stats;       ///< pointer to the player's performance data
+
+        // Optional fields
+        std::string position;  ///< e.g., "Pitcher", "Catcher", or "1B"
+        bool active;           ///< if you want to mark the player as active/injured/retired, etc.
     };
 
 } // namespace BBEngine

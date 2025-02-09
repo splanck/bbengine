@@ -1,119 +1,153 @@
+
 #pragma once
 
-#include <iostream>
+#include <algorithm> // for std::clamp
+#include <vector>
 
 namespace BBEngine
 {
-    class PlayerAttributes 
+    /**
+     * The PlayerAttributes class stores all skill ratings (1–99)
+     * for batting, pitching, fielding, and baserunning.
+     */
+    class PlayerAttributes
     {
     public:
-        // Default constructor: sets all attributes to a default value of 50.
+        // ------------------------------
+        // Constructor & Initialization
+        // ------------------------------
+        /**
+         * Default constructor sets all ratings to a mid-level (50) or your preferred default.
+         */
         PlayerAttributes();
 
-        // --- Getters for Pitching Attributes ---
-        int getPitchVelocity() const;
-        int getPitchControl() const;
-        int getPitchMovement() const;
-        int getPitchStamina() const;
-        int getPitchDeception() const;
-        int getPitchMechanics() const;
-        int getPitchConsistency() const;
-        int getPitchRepertoire() const;
-        int getPitchArmStrength() const;
-        int getPitchGameManagement() const;
+        // ----------------------------------------------------------------
+        // Getters & Setters - Hitting Attributes
+        // ----------------------------------------------------------------
+        int getContact() const;
+        void setContact(int value);
 
-        // --- Getters for Hitting Attributes ---
-        int getHitContact() const;
-        int getHitPower() const;
-        int getBatSpeed() const;
+        int getPower() const;
+        void setPower(int value);
+
+        /**
+         * Optional: Plate Discipline
+         * If your sim doesn't need it, you can remove or comment out.
+         */
         int getPlateDiscipline() const;
-        int getVision() const;
-        int getSwingMechanics() const;
-        int getSwingTiming() const;
-        int getSituationalAwareness() const;
-        int getAdaptability() const;
-        int getOnBaseSkill() const;
-
-        // --- Getters for Fielding Attributes ---
-        int getFieldingRange() const;
-        int getReactionTime() const;
-        int getArmAccuracy() const;
-        int getFieldingAwareness() const;
-        int getSpeed() const; // Running speed for both baserunning and defense
-
-        // --- Setters for Pitching Attributes ---
-        void setPitchVelocity(int value);
-        void setPitchControl(int value);
-        void setPitchMovement(int value);
-        void setPitchStamina(int value);
-        void setPitchDeception(int value);
-        void setPitchMechanics(int value);
-        void setPitchConsistency(int value);
-        void setPitchRepertoire(int value);
-        void setPitchArmStrength(int value);
-        void setPitchGameManagement(int value);
-
-        // --- Setters for Hitting Attributes ---
-        void setHitContact(int value);
-        void setHitPower(int value);
-        void setBatSpeed(int value);
         void setPlateDiscipline(int value);
-        void setVision(int value);
-        void setSwingMechanics(int value);
-        void setSwingTiming(int value);
-        void setSituationalAwareness(int value);
-        void setAdaptability(int value);
-        void setOnBaseSkill(int value);
 
-        // --- Setters for Fielding Attributes ---
-        void setFieldingRange(int value);
+        // ----------------------------------------------------------------
+        // Getters & Setters - Pitching Attributes
+        // ----------------------------------------------------------------
+        int getPitchVelocity() const;
+        void setPitchVelocity(int value);
+
+        int getPitchControl() const;
+        void setPitchControl(int value);
+
+        int getPitchMovement() const;
+        void setPitchMovement(int value);
+
+        /**
+         * Optional: Stamina for pitchers (how long they can pitch effectively).
+         */
+        int getStamina() const;
+        void setStamina(int value);
+
+        // ----------------------------------------------------------------
+        // Getters & Setters - Fielding Attributes
+        // ----------------------------------------------------------------
+        int getReactionTime() const;
         void setReactionTime(int value);
+
+        /**
+         * ArmAccuracy could also be armStrength if that suits your sim.
+         */
+        int getArmAccuracy() const;
         void setArmAccuracy(int value);
-        void setFieldingAwareness(int value);
+
+        int getFieldingRange() const;
+        void setFieldingRange(int value);
+
+        // ----------------------------------------------------------------
+        // Getters & Setters - Speed / Baserunning
+        // ----------------------------------------------------------------
+        int getSpeed() const;
         void setSpeed(int value);
 
-        // --- Utility Functions ---
-        double calculatePitchingRating() const;   // Average of pitching attributes
-        double calculateHittingRating() const;      // Average of hitting attributes
-        double calculateFieldingRating() const;     // Average of fielding attributes
+        // ----------------------------------------------------------------
+        // Optional Additional Ratings
+        // ----------------------------------------------------------------
+        int getDurability() const;
+        void setDurability(int value);
 
-        // Print all attributes for debugging.
-        void printAttributes() const;
+        int getClutch() const;
+        void setClutch(int value);
+
+        // ----------------------------------------------------------------
+        // Utility / Combined Methods
+        // ----------------------------------------------------------------
+        /**
+         * Ensures all rating fields are clamped to [1..99].
+         * Call after a bulk load or any major changes if desired.
+         */
+        void clampAllAttributes();
+
+        /**
+         * A quick average of relevant hitting ratings (just an example).
+         */
+        double averageHittingRating() const;
+
+        /**
+         * A quick average of relevant pitching ratings (just an example).
+         */
+        double averagePitchingRating() const;
+
+        /**
+         * Example method if you want to age the player or develop them,
+         * possibly lowering velocity or increasing control, etc.
+         */
+        void ageOneYear();
 
     private:
-        // --- Pitching Attributes ---
-        int pitchVelocity;
-        int pitchControl;
-        int pitchMovement;
-        int pitchStamina;
-        int pitchDeception;
-        int pitchMechanics;
-        int pitchConsistency;
-        int pitchRepertoire;
-        int pitchArmStrength;
-        int pitchGameManagement;
+        // Helper to clamp a given value into [1..99].
+        int clampValue(int raw);
 
-        // --- Hitting Attributes ---
-        int hitContact;
-        int hitPower;
-        int batSpeed;
-        int plateDiscipline;
-        int vision;
-        int swingMechanics;
-        int swingTiming;
-        int situationalAwareness;
-        int adaptability;
-        int onBaseSkill;
+        // ------------------------------
+        // Hitting Attributes
+        // ------------------------------
+        int contact;         ///< Probability of making solid contact (1–99)
+        int power;           ///< Likelihood of hitting extra-base hits or HR
+        int plateDiscipline; ///< Affects walk rate / chase tendencies
 
-        // --- Fielding Attributes ---
-        int fieldingRange;
-        int reactionTime;
-        int armAccuracy;
-        int fieldingAwareness;
-        int speed;  // Represents running speed for both baserunning and defense
+        // ------------------------------
+        // Pitching Attributes
+        // ------------------------------
+        int pitchVelocity;   ///< Speed of pitches
+        int pitchControl;    ///< Accuracy for hitting spots
+        int pitchMovement;   ///< Movement/break on pitches
+        int stamina;         ///< Optional: how long they can pitch effectively
 
-        // Helper function to clamp a given value to the range [1, 99].
-        int clampAttribute(int value) const;
+        // ------------------------------
+        // Fielding Attributes
+        // ------------------------------
+        int reactionTime;    ///< Quickness to respond to batted balls
+        int armAccuracy;     ///< Or 'armStrength'
+        int fieldingRange;   ///< How much ground the fielder can cover
+
+        // ------------------------------
+        // Speed / Baserunning
+        // ------------------------------
+        int speed;           ///< Overall speed, can apply to baserunning & fielding
+
+        // ------------------------------
+        // Optional Additional Ratings
+        // ------------------------------
+        int durability;      ///< E.g., likelihood to remain healthy
+        int clutch;          ///< Bonus in key situations if your sim uses it
     };
 
-}
+} // namespace BBEngine
+
+
