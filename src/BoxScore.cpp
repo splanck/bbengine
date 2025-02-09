@@ -1,7 +1,6 @@
 #include "BoxScore.h"
 #include <algorithm>
 #include <stdexcept>
-// #include <iostream> // if you want to debug with prints
 
 namespace BBEngine
 {

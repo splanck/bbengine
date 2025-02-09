@@ -2,10 +2,11 @@
 
 #include <vector>
 #include <stdexcept>  // if you want to throw exceptions
-#include "Player.h"   // or forward-declare class Player; if you prefer
 
 namespace BBEngine
 {
+    class Player;
+
     /**
      * The StartingRotation class manages a cyclical list of Player* pitchers
      * for a team’s rotation. Typically 5 pitchers, but can be 4, 6, or more.

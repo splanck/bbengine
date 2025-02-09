@@ -4,11 +4,11 @@
 #include <memory>   // if you want to use smart pointers
 #include <cassert>  // or <stdexcept> for validations
 
-#include "PlayerAttributes.h"
-#include "PlayerStats.h"
-
 namespace BBEngine
 {
+    class PlayerAttributes;
+    class PlayerStats;
+
     // Simple enum for batting/throwing handedness
     enum class Handedness
     {

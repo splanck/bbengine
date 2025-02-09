@@ -3,7 +3,6 @@
 #include <string>
 #include <vector>
 #include <cassert> // or <stdexcept>
-#include "Player.h" // If you store Player*, otherwise forward-declare "class Player;"
 
 namespace BBEngine
 {
@@ -12,6 +11,8 @@ namespace BBEngine
      *  - Player pointer (if you store actual references)
      *  - Stats for that game (AB, hits, doubles, HR, walks, strikeouts, runs, etc.)
      */
+    class Player;
+
     struct BoxScoreBattingLine
     {
         Player* player = nullptr;

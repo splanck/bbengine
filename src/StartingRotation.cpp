@@ -60,19 +60,13 @@ namespace BBEngine
     void StartingRotation::removePitcher(int index)
     {
         if (index < 0 || index >= static_cast<int>(pitchers.size()))
-        {
-            throw std::out_of_range("Invalid pitcher index for removePitcher");
-        }
-
-        // If index is before nextStarterIndex, decrement nextStarterIndex
-        // so that the rotation order remains consistent after removal
-        if (index < nextStarterIndex)
-        {
-            nextStarterIndex--;
-        }
+            throw std::out_of_range("Invalid index");
 
         pitchers.erase(pitchers.begin() + index);
-        // Then clamp nextStarterIndex if needed
+
+        // Instead of adjusting nextStarterIndex relatively,
+        // always reset to 0 and wrap if needed (rarely needed if we want 0).
+        nextStarterIndex = 0;
         wrapIndex();
     }
 
@@ -114,7 +108,7 @@ namespace BBEngine
         {
             // Could clamp or throw
             // throw std::out_of_range("Invalid newIndex");
-            if (!pitchers.empty())
+           if (!pitchers.empty())
                 nextStarterIndex = newIndex % pitchers.size();
             else
                 nextStarterIndex = 0;
