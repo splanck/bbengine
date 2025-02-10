@@ -7,22 +7,7 @@ This is a realistic 3D baseball simulation engine built in modern C++ with plans
 - Detailed player attributes for pitching, hitting, and fielding.
 - Aggregates multiple seasons of player statistics.
 - Modular architecture for independent development, testing, and future UE5 integration.
-- Cross-platform support (Windows, Linux, macOS) using CMake.
-
-## Directory Structure
-
-BaseballEngine/
-  CMakeLists.txt        # Build configuration file
-  include/              # Header files
-      BBEnginePlayerAttributes.h
-      BBEnginePlayerStats.h
-      BBEnginePlayer.h
-  src/                  # Source files
-      BBEnginePlayerAttributes.cpp
-      BBEnginePlayerStats.cpp
-      BBEnginePlayer.cpp
-  tests/                # Test code
-      main.cpp
+- Full baseball game per pitch and full game simulation.
 
 ## Building the Project
 
