@@ -5,8 +5,76 @@
 #include "PlayerAttributes.h"
 #include "PlayerStats.h"
 #include "StartingRotation.h"
+#include "Team.h"
 
 using namespace BBEngine;
+
+void testTeam()
+{
+    std::cout << "-- Testing Team --\n";
+
+    // Create a team named "Boston Red Sox" at the "MLB" level
+    Team team("Boston Red Sox", "MLB");
+    assert(team.getName() == "Boston Red Sox");
+    assert(team.getLevel() == "MLB");
+    assert(team.getRoster().empty());
+
+    // 1. Create a few players
+    PlayerAttributes* attr1 = new PlayerAttributes();
+    PlayerStats* stats1 = new PlayerStats();
+    Player p1("PlayerOne", 28, Handedness::Left, attr1, stats1);
+
+    PlayerAttributes* attr2 = new PlayerAttributes();
+    PlayerStats* stats2 = new PlayerStats();
+    Player p2("PlayerTwo", 30, Handedness::Right, attr2, stats2);
+
+    // 2. Add them to the roster
+    team.addPlayer(&p1);
+    team.addPlayer(&p2);
+    assert(team.getRoster().size() == 2);
+
+    // 3. Setup lineups
+    std::vector<Player*> vsRHP{ &p1 };
+    std::vector<Player*> vsLHP{ &p2 };
+    team.setLineupVsRHP(vsRHP);
+    team.setLineupVsLHP(vsLHP);
+
+    // Confirm lineups
+    assert(team.getLineupVsRHP().size() == 1);
+    assert(team.getLineupVsRHP()[0] == &p1);
+    assert(team.getLineupVsLHP().size() == 1);
+    assert(team.getLineupVsLHP()[0] == &p2);
+
+    // 4. Setup a rotation
+    std::vector<Player*> pitchers;
+    pitchers.push_back(&p1); // pretend he's also a pitcher, just for demo
+    pitchers.push_back(&p2);
+
+    StartingRotation* rotation = new StartingRotation(pitchers);
+    team.setRotation(rotation);
+    assert(team.getRotation() != nullptr);
+    assert(team.getRotation()->getPitchers().size() == 2);
+    // Next starter => p1
+    assert(team.getRotation()->getNextStarter() == &p1);
+
+    // 5. Remove a player
+    team.removePlayer(&p1);
+    // Now p1 is removed from the roster, lineups, and rotation if found
+    assert(team.getRoster().size() == 1);       // only p2 remains
+    assert(team.getLineupVsRHP().empty());      // p1 was removed from RHP lineup
+    // Check rotation
+    assert(team.getRotation()->getPitchers().size() == 1);
+    assert(team.getRotation()->getPitchers()[0] == &p2);
+
+    // Cleanup dynamic memory
+    delete rotation;  // if you want to avoid memory leaks
+    delete attr1;
+    delete stats1;
+    delete attr2;
+    delete stats2;
+
+    std::cout << "Team tests passed.\n";
+}
 
 /**
  * A quick test function to populate a BoxScore with data
@@ -367,6 +435,7 @@ int main()
     testPlayer();
     testBoxScore();
     testStartingRotation();
+    testTeam();
 
     std::cout << "All tests completed successfully.\n";
     return 0;
