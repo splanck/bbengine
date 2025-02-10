@@ -13,6 +13,7 @@ add_library(BaseballEngine
     src/BoxScore.cpp
     src/StartingRotation.cpp
     src/Team.cpp
+    src/Simulator.cpp
 )
 
 # Specify the include directories for this library

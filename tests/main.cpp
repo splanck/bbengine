@@ -6,6 +6,7 @@
 #include "PlayerStats.h"
 #include "StartingRotation.h"
 #include "Team.h"
+#include "Simulator.h"
 
 using namespace BBEngine;
 
@@ -425,6 +426,130 @@ void testStartingRotation()
     std::cout << "StartingRotation tests passed.\n";
 }
 
+void testSimulator()
+{
+    std::cout << "---- Testing Simulator ----\n";
+
+    // 1. Create a Simulator instance.
+    Simulator simulator;
+
+    // 2. Create pitcher and batter attributes with arbitrary values
+    PlayerAttributes pitcherAttr;
+    pitcherAttr.setPitchVelocity(80);   // moderate velocity
+    pitcherAttr.setPitchControl(70);    // decent control
+    pitcherAttr.setPitchMovement(60);   // optional
+    // ignoring stamina, fielding, etc. for now
+
+    PlayerAttributes batterAttr;
+    batterAttr.setContact(65);         // moderate contact
+    batterAttr.setPower(70);           // moderate power
+    batterAttr.setPlateDiscipline(50); // average discipline
+
+    // 3. Create a default stadium context
+    StadiumContext stadium;
+    stadium.fenceDistanceLeft = 330.0;
+    stadium.fenceDistanceCenter = 400.0;
+    stadium.fenceDistanceRight = 330.0;
+    // ignoring wind/altitude for now
+
+    // 4. We'll define a pitch context. 
+    //    We'll keep it simple: no intentional walk, no pitchOut.
+    PitchContext pitchCtx;
+    pitchCtx.balls = 0;
+    pitchCtx.strikes = 0;
+
+    // 5. We'll run multiple pitches to see outcomes.
+    // We'll store counts in a small map or separate variables.
+    int totalPitches = 100;
+    int countBall = 0;
+    int countStrikeSwing = 0;
+    int countStrikeLooking = 0;
+    int countFoul = 0;
+    int countBattedInPlay = 0;
+
+    // For batted-ball outcomes
+    int countSingle = 0;
+    int countDouble = 0;
+    int countTriple = 0;
+    int countHR = 0;
+    int countOut = 0;
+
+    for (int i = 0; i < totalPitches; ++i)
+    {
+        // Each pitch might have a new or updated pitchCtx in a real game
+        // but we keep it simple. If you do full at-bat logic, you'd track balls/strikes, etc.
+
+        PitchOutcome outcome = simulator.simulatePitch(pitcherAttr, batterAttr, stadium, pitchCtx);
+        switch (outcome)
+        {
+        case PitchOutcome::BALL:
+            countBall++;
+            // If you do full at-bat logic, you'd increment pitchCtx.balls
+            // if pitchCtx.balls == 4 => walk, at-bat ends, etc.
+            break;
+        case PitchOutcome::STRIKE_SWINGING:
+            countStrikeSwing++;
+            // pitchCtx.strikes++ if you manage a real at-bat flow
+            break;
+        case PitchOutcome::STRIKE_LOOKING:
+            countStrikeLooking++;
+            break;
+        case PitchOutcome::FOUL:
+            countFoul++;
+            // if pitchCtx.strikes < 2 => pitchCtx.strikes++
+            break;
+        case PitchOutcome::BATTED_BALL_IN_PLAY:
+        {
+            countBattedInPlay++;
+            BattedBallOutcome hitOutcome =
+                simulator.computeBattedBallOutcome(pitcherAttr, batterAttr, stadium);
+
+            switch (hitOutcome)
+            {
+            case BattedBallOutcome::SINGLE:
+                countSingle++;
+                break;
+            case BattedBallOutcome::DOUBLE_:
+                countDouble++;
+                break;
+            case BattedBallOutcome::TRIPLE:
+                countTriple++;
+                break;
+            case BattedBallOutcome::HOMERUN:
+                countHR++;
+                break;
+            case BattedBallOutcome::OUT:
+                countOut++;
+                break;
+            }
+            break;
+        }
+        }
+    }
+
+    // 6. Print results
+    std::cout << "Total Pitches: " << totalPitches << "\n";
+    std::cout << "Balls: " << countBall << "\n";
+    std::cout << "Strike Swinging: " << countStrikeSwing << "\n";
+    std::cout << "Strike Looking: " << countStrikeLooking << "\n";
+    std::cout << "Foul: " << countFoul << "\n";
+    std::cout << "Batted In Play: " << countBattedInPlay << "\n";
+
+    std::cout << "\nBatted-Ball Breakdown (In-Play Only):\n";
+    std::cout << "  Single:  " << countSingle << "\n";
+    std::cout << "  Double:  " << countDouble << "\n";
+    std::cout << "  Triple:  " << countTriple << "\n";
+    std::cout << "  HomeRun: " << countHR << "\n";
+    std::cout << "  Out(?):  " << countOut << "\n";
+
+    // Because it's random, there's no strict pass/fail. But we can do a sanity check
+    // e.g., we might expect at least 1 ball or 1 strike out of 100. If we get 0, something is off.
+    assert(countBall + countStrikeSwing + countStrikeLooking + countFoul + countBattedInPlay == totalPitches);
+
+    // We can do a minimal check that we didn't get some insane distribution (like 100% home runs).
+    // This is optional. We'll just do a naive check.
+    std::cout << "---- Simulator test completed ----\n\n";
+}
 
 int main()
 {
@@ -436,6 +561,7 @@ int main()
     testBoxScore();
     testStartingRotation();
     testTeam();
+    testSimulator();
 
     std::cout << "All tests completed successfully.\n";
     return 0;
