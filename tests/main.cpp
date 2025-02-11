@@ -7,8 +7,86 @@
 #include "StartingRotation.h"
 #include "Team.h"
 #include "Simulator.h"
+#include "GameManager.h"
 
 using namespace BBEngine;
+
+void testGameManager()
+{
+    using namespace BBEngine;
+
+    std::cout << "---- Testing GameManager ----\n";
+
+    // 1. Setup teams
+    Team home("HomeTown Heroes", "MLB");
+    Team away("AwayTown Visitors", "MLB");
+
+    // 2. Setup lineups (we only do 3 players for brevity)
+    // In real usage, you'd do 9 or more
+    PlayerAttributes* attr1 = new PlayerAttributes();
+    PlayerStats* stats1 = new PlayerStats();
+    Player p1("HomeBatter1", 25, Handedness::Right, attr1, stats1);
+
+    PlayerAttributes* attr2 = new PlayerAttributes();
+    PlayerStats* stats2 = new PlayerStats();
+    Player p2("HomeBatter2", 29, Handedness::Left, attr2, stats2);
+
+    PlayerAttributes* attr3 = new PlayerAttributes();
+    PlayerStats* stats3 = new PlayerStats();
+    Player p3("AwayBatter1", 26, Handedness::Right, attr3, stats3);
+
+    home.addPlayer(&p1);
+    home.addPlayer(&p2);
+
+    away.addPlayer(&p3);
+
+    // Set lineups
+    std::vector<Player*> homeLineup{ &p1, &p2 };
+    std::vector<Player*> awayLineup{ &p3 };
+    home.setLineupVsRHP(homeLineup);
+    away.setLineupVsRHP(awayLineup);
+
+    // 3. Setup starting pitchers
+    // We'll just say each team has 1 "starter"
+    PlayerAttributes* pattrH = new PlayerAttributes();
+    PlayerStats* pstatsH = new PlayerStats();
+    Player homePitcher("HomePitcher", 30, Handedness::Right, pattrH, pstatsH);
+
+    PlayerAttributes* pattrA = new PlayerAttributes();
+    PlayerStats* pstatsA = new PlayerStats();
+    Player awayPitcher("AwayPitcher", 31, Handedness::Left, pattrA, pstatsA);
+
+    StartingRotation homeRotation({ &homePitcher });
+    StartingRotation awayRotation({ &awayPitcher });
+    home.setRotation(&homeRotation);
+    away.setRotation(&awayRotation);
+
+    // 4. Create a BoxScore & Simulator
+    BoxScore box("HomeTown Heroes", "AwayTown Visitors");
+    Simulator sim;
+
+    // 5. Create GameManager
+    GameManager gm(&home, &away, &box, &sim);
+
+    // 6. Run the game
+    gm.runGame();
+
+    // Print final scores
+    std::cout << "Game finished. Final Score:\n";
+    std::cout << "  Home: " << box.getHomeTeamRuns() << "\n";
+    std::cout << "  Away: " << box.getAwayTeamRuns() << "\n";
+    std::cout << "---- End of GameManager test ----\n\n";
+
+    // Cleanup your new allocations
+    delete attr1; delete stats1;
+    delete attr2; delete stats2;
+    delete attr3; delete stats3;
+    delete pattrH; delete pstatsH;
+    delete pattrA; delete pstatsA;
+    // The players themselves might be on the stack in this example, 
+    // or you store them in the Team for the entire simulation. 
+    // In a bigger system, you'd manage memory carefully.
+}
 
 void testTeam()
 {
@@ -551,6 +629,159 @@ void testSimulator()
     std::cout << "---- Simulator test completed ----\n\n";
 }
 
+/**
+ * A function that demonstrates a full 9-inning (or more) game
+ * using random outcomes from your real Simulator.
+ */
+void testGameManagerRandomComprehensive()
+{
+    std::cout << "\n=== Starting Comprehensive Random GameManager Test ===\n\n";
+
+    // 1. Create two Teams (home & away) with minimal rosters
+    Team awayTeam("AwayTeam", "MLB");
+    Team homeTeam("HomeTeam", "MLB");
+
+    // We'll create a few players for each side:
+    // For AWAY: 4 batters + 1 pitcher
+    // For HOME: 4 batters + 1 pitcher
+    // (In real usage, you'd have 9+ batters, multiple pitchers.)
+
+    // AWAY players
+    PlayerAttributes* aB1_attr = new PlayerAttributes();
+    PlayerStats* aB1_stats = new PlayerStats();
+    Player awayBatter1("AwayBatter1", 25, Handedness::Right, aB1_attr, aB1_stats);
+
+    PlayerAttributes* aB2_attr = new PlayerAttributes();
+    PlayerStats* aB2_stats = new PlayerStats();
+    Player awayBatter2("AwayBatter2", 28, Handedness::Left, aB2_attr, aB2_stats);
+
+    PlayerAttributes* aB3_attr = new PlayerAttributes();
+    PlayerStats* aB3_stats = new PlayerStats();
+    Player awayBatter3("AwayBatter3", 23, Handedness::Right, aB3_attr, aB3_stats);
+
+    PlayerAttributes* aB4_attr = new PlayerAttributes();
+    PlayerStats* aB4_stats = new PlayerStats();
+    Player awayBatter4("AwayBatter4", 26, Handedness::Switch, aB4_attr, aB4_stats);
+
+    PlayerAttributes* aP_attr = new PlayerAttributes();
+    PlayerStats* aP_stats = new PlayerStats();
+    Player awayPitcher("AwayPitcher", 30, Handedness::Right, aP_attr, aP_stats);
+
+    // HOME players
+    PlayerAttributes* hB1_attr = new PlayerAttributes();
+    PlayerStats* hB1_stats = new PlayerStats();
+    Player homeBatter1("HomeBatter1", 29, Handedness::Left, hB1_attr, hB1_stats);
+
+    PlayerAttributes* hB2_attr = new PlayerAttributes();
+    PlayerStats* hB2_stats = new PlayerStats();
+    Player homeBatter2("HomeBatter2", 27, Handedness::Right, hB2_attr, hB2_stats);
+
+    PlayerAttributes* hB3_attr = new PlayerAttributes();
+    PlayerStats* hB3_stats = new PlayerStats();
+    Player homeBatter3("HomeBatter3", 31, Handedness::Left, hB3_attr, hB3_stats);
+
+    PlayerAttributes* hB4_attr = new PlayerAttributes();
+    PlayerStats* hB4_stats = new PlayerStats();
+    Player homeBatter4("HomeBatter4", 22, Handedness::Right, hB4_attr, hB4_stats);
+
+    PlayerAttributes* hP_attr = new PlayerAttributes();
+    PlayerStats* hP_stats = new PlayerStats();
+    Player homePitcher("HomePitcher", 32, Handedness::Left, hP_attr, hP_stats);
+
+    // 2. Add them to the teams
+    // AWAY
+    awayTeam.addPlayer(&awayBatter1);
+    awayTeam.addPlayer(&awayBatter2);
+    awayTeam.addPlayer(&awayBatter3);
+    awayTeam.addPlayer(&awayBatter4);
+    awayTeam.addPlayer(&awayPitcher);
+
+    // HOME
+    homeTeam.addPlayer(&homeBatter1);
+    homeTeam.addPlayer(&homeBatter2);
+    homeTeam.addPlayer(&homeBatter3);
+    homeTeam.addPlayer(&homeBatter4);
+    homeTeam.addPlayer(&homePitcher);
+
+    // 3. Set lineups vs RHP for each (4 batters in a row, for demo)
+    awayTeam.setLineupVsRHP({ &awayBatter1, &awayBatter2, &awayBatter3, &awayBatter4 });
+    homeTeam.setLineupVsRHP({ &homeBatter1, &homeBatter2, &homeBatter3, &homeBatter4 });
+
+    // 4. Create a rotation for each (just 1 pitcher, so no real rotation)
+    StartingRotation awayRotation({ &awayPitcher });
+    awayTeam.setRotation(&awayRotation);
+
+    StartingRotation homeRotation({ &homePitcher });
+    homeTeam.setRotation(&homeRotation);
+
+    // 5. Create the BoxScore and a real random-based Simulator
+    BoxScore box("HomeTeam", "AwayTeam");
+    Simulator realSimulator; // uses random logic from your existing simulator
+
+    // 6. Create the GameManager
+    GameManager gameMgr(&homeTeam, &awayTeam, &box, &realSimulator);
+
+    // 7. Run the game. This typically goes 9+ innings or ends if your game logic sees a walk-off, etc.
+    gameMgr.runGame();
+
+    // 8. Print final results from BoxScore
+    int awayRuns = box.getAwayTeamRuns();
+    int homeRuns = box.getHomeTeamRuns();
+    std::cout << "\n--- Final Score ---\n";
+    std::cout << "  AwayTeam: " << awayRuns << "\n";
+    std::cout << "  HomeTeam: " << homeRuns << "\n\n";
+
+    std::cout << "Away Batting Lines:\n";
+    for (const auto& line : box.getAwayBattingLines())
+    {
+        if (!line.player) continue;
+        std::cout << "  " << line.player->getName()
+            << ": AB=" << line.atBats
+            << ", H=" << line.hits
+            << ", HR=" << line.homeRuns
+            << ", R=" << line.runsScored
+            << ", RBI=" << line.runsBattedIn
+            << ", BB=" << line.walks
+            << ", K=" << line.strikeouts
+            << "\n";
+    }
+
+    std::cout << "\nHome Batting Lines:\n";
+    for (const auto& line : box.getHomeBattingLines())
+    {
+        if (!line.player) continue;
+        std::cout << "  " << line.player->getName()
+            << ": AB=" << line.atBats
+            << ", H=" << line.hits
+            << ", HR=" << line.homeRuns
+            << ", R=" << line.runsScored
+            << ", RBI=" << line.runsBattedIn
+            << ", BB=" << line.walks
+            << ", K=" << line.strikeouts
+            << "\n";
+    }
+
+    // Optionally, we can also show the pitching lines if your BoxScore logs them.
+
+    // 9. Basic validation: game should be over
+    assert(gameMgr.isGameOver() && "Game should have ended by now.");
+
+    // 10. Clean up dynamic memory if needed (if these are not managed by some bigger system).
+    delete aB1_attr; delete aB1_stats;
+    delete aB2_attr; delete aB2_stats;
+    delete aB3_attr; delete aB3_stats;
+    delete aB4_attr; delete aB4_stats;
+    delete aP_attr;  delete aP_stats;
+
+    delete hB1_attr; delete hB1_stats;
+    delete hB2_attr; delete hB2_stats;
+    delete hB3_attr; delete hB3_stats;
+    delete hB4_attr; delete hB4_stats;
+    delete hP_attr;  delete hP_stats;
+
+    std::cout << "=== End of Comprehensive Random GameManager Test ===\n\n";
+}
+
 int main()
 {
     std::cout << "Hello, Baseball Engine!\n\n";
@@ -562,6 +793,8 @@ int main()
     testStartingRotation();
     testTeam();
     testSimulator();
+    testGameManager();
+    testGameManagerRandomComprehensive();
 
     std::cout << "All tests completed successfully.\n";
     return 0;
