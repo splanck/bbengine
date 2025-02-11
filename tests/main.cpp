@@ -8,6 +8,7 @@
 #include "Team.h"
 #include "Simulator.h"
 #include "GameManager.h"
+#include "Schedule.h"
 
 using namespace BBEngine;
 
@@ -782,6 +783,104 @@ void testGameManagerRandomComprehensive()
     std::cout << "=== End of Comprehensive Random GameManager Test ===\n\n";
 }
 
+
+void testSchedule()
+{
+    std::cout << "\n=== Testing Schedule ===\n\n";
+
+    // 1. Create some teams
+    Team t1("Yankees", "MLB");
+    Team t2("RedSox", "MLB");
+    Team t3("BlueJays", "MLB");
+
+    // If you want to create real Players, do so, but the schedule doesn't strictly need them.
+    std::vector<Team*> teams = { &t1, &t2, &t3 };
+
+    // 2. Create a Schedule
+    Schedule schedule;
+
+    // 3. Generate a minimal schedule
+    schedule.generateSchedule(teams);
+    
+    // 4. Check the total number of games
+    // with 3 teams, each pair => 2 games (home/away) => 3C2=3 pairs, each pair 2 games => 6 total games
+    const auto& allGames = schedule.getAllGames();
+    assert(allGames.size() == 12);
+    std::cout << "Hello" << allGames.size() << std::endl;
+    std::cout << "All scheduled games:\n";
+    for (const auto& g : allGames)
+    {
+        std::cout << " GameID=" << g.gameID
+            << " date=" << g.date
+            << " home=" << (g.homeTeam ? g.homeTeam->getName() : "null")
+            << " away=" << (g.awayTeam ? g.awayTeam->getName() : "null")
+            << " completed=" << g.completed
+            << " score=" << g.awayScore << "-" << g.homeScore << "\n";
+    }
+
+    // 5. Suppose we pick the first game (index=0) to record a final score
+    int someID = allGames[0].gameID;
+    schedule.recordGameResult(someID, /*awayScore=*/5, /*homeScore=*/3);
+
+    // confirm updated
+    auto afterGames = schedule.getAllGames();
+    bool foundOne = false;
+    for (const auto& g : afterGames)
+    {
+        if (g.gameID == someID)
+        {
+            assert(g.completed == true);
+            assert(g.awayScore == 5);
+            assert(g.homeScore == 3);
+            foundOne = true;
+            std::cout << "Recorded result for gameID=" << g.gameID << " => away=5, home=3\n";
+        }
+    }
+    assert(foundOne);
+
+    // 6. Let's see what games are on date=2
+    auto day2games = schedule.getGamesOn(2);
+    std::cout << "\nGames on date=2:\n";
+    for (const auto& g : day2games)
+    {
+        std::cout << " gameID=" << g.gameID
+            << " " << (g.homeTeam ? g.homeTeam->getName() : "null")
+            << " vs " << (g.awayTeam ? g.awayTeam->getName() : "null")
+            << "\n";
+    }
+    // 7. Postpone the first day2 game to day=5
+    if (!day2games.empty())
+    {
+        int gameToPostpone = day2games[0].gameID;
+        schedule.postponeGame(gameToPostpone, /*newDate=*/5);
+        auto updated = schedule.getAllGames();
+        // Just confirm
+        for (const auto& g : updated)
+        {
+            if (g.gameID == gameToPostpone)
+            {
+                assert(g.date == 5);
+                std::cout << "Postponed gameID=" << g.gameID << " to new date=5\n";
+            }
+        }
+    }
+
+    // 8. Print final schedule state
+    std::cout << "\nFinal schedule state:\n";
+    for (const auto& g : schedule.getAllGames())
+    {
+        std::cout << "GameID=" << g.gameID
+            << " date=" << g.date
+            << " home=" << (g.homeTeam ? g.homeTeam->getName() : "null")
+            << " away=" << (g.awayTeam ? g.awayTeam->getName() : "null")
+            << " completed=" << g.completed
+            << " score=" << g.awayScore << "-" << g.homeScore
+            << "\n";
+    }
+
+    std::cout << "\n=== End of Schedule Test ===\n\n";
+}
+
 int main()
 {
     std::cout << "Hello, Baseball Engine!\n\n";
@@ -795,6 +894,7 @@ int main()
     testSimulator();
     testGameManager();
     testGameManagerRandomComprehensive();
+    testSchedule();
 
     std::cout << "All tests completed successfully.\n";
     return 0;
