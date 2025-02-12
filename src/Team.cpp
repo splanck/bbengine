@@ -56,6 +56,12 @@ namespace BBEngine
         }
     }
 
+    // NEW: Implementation of hasPlayer
+    bool Team::hasPlayer(Player* p) const
+    {
+        return (std::find(roster.begin(), roster.end(), p) != roster.end());
+    }
+
     // -----------------------------------------------------------
     // Lineup Methods
     // -----------------------------------------------------------

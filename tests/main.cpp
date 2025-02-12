@@ -12,6 +12,7 @@
 #include "Standings.h"
 #include "Season.h"
 #include "League.h"
+#include "TradeManager.h"
 
 using namespace BBEngine;
 
@@ -1074,6 +1075,120 @@ void testLeague()
     std::cout << "==== End of League Test ====\n\n";
 }
 
+void testTradeManager()
+{
+    std::cout << "\n==== Testing TradeManager ====\n\n";
+
+    // 1. Create a few teams
+    Team t1("TeamA", "MLB");
+    Team t2("TeamB", "MLB");
+
+    // 2. Add some players to each
+    PlayerAttributes* attr1 = new PlayerAttributes();
+    PlayerStats* stats1 = new PlayerStats();
+    Player pA("PlayerA", 25, Handedness::Right, attr1, stats1);
+
+    PlayerAttributes* attr2 = new PlayerAttributes();
+    PlayerStats* stats2 = new PlayerStats();
+    Player pB("PlayerB", 28, Handedness::Left, attr2, stats2);
+
+    t1.addPlayer(&pA);
+    t2.addPlayer(&pB);
+
+    // a second player in TeamA
+    PlayerAttributes* attr3 = new PlayerAttributes();
+    PlayerStats* stats3 = new PlayerStats();
+    Player pC("PlayerC", 30, Handedness::Right, attr3, stats3);
+    t1.addPlayer(&pC);
+
+    // 3. Create a freeAgents list
+    std::vector<Player*> freeAgents;
+    PlayerAttributes* attr4 = new PlayerAttributes();
+    PlayerStats* stats4 = new PlayerStats();
+    Player pFA("FreeAgentX", 24, Handedness::Switch, attr4, stats4);
+    freeAgents.push_back(&pFA);
+
+    // 4. Make a list of all teams in league
+    std::vector<Team*> allTeams = { &t1, &t2 };
+
+    // 5. Construct a TradeManager
+    //    We'll set deadlinePassed=false, maxRosterSize=26
+    TradeManager tradeManager(allTeams, freeAgents, /*deadlinePassed=*/false, /*maxRosterSize=*/26);
+
+    // 6. Test signFreeAgent => TeamB tries to sign "FreeAgentX"
+    bool signedOk = tradeManager.signFreeAgent(&t2, &pFA);
+    assert(signedOk == true);
+    assert(t2.getRoster().size() == 2); // t2 had pB, but we add pFA => total 2
+    // Wait, we must check: t2 started with 1 player pB, we add pFA => 2 total
+    // but earlier we might see it as 2 after we do "pB" plus the newly added? Actually see if anything is off
+    // If we used "Team" code above, that is the logic. We'll trust it.
+
+    // 7. Suppose we do a trade: TeamA offers "PlayerC" => TeamB offers "PlayerB"
+    std::vector<Player*> fromTeamA = { &pC };
+    std::vector<Player*> fromTeamB = { &pB };
+    bool tradeOk = tradeManager.proposeTrade(&t1, &t2, fromTeamA, fromTeamB);
+    if (tradeOk)
+    {
+        std::cout << "[testTradeManager] trade successful: TeamA gave PlayerC, got PlayerB.\n";
+    }
+    else
+    {
+        std::cout << "[testTradeManager] trade refused.\n";
+    }
+
+    // check rosters
+    // TeamA initially had pA, pC. 
+    // If trade succeeded, T1 => pA, pB ; T2 => pC, pFA
+    std::cout << "TeamA roster:\n";
+    for (auto* pl : t1.getRoster())
+    {
+        std::cout << "  " << pl->getName() << "\n";
+    }
+    std::cout << "TeamB roster:\n";
+    for (auto* pl : t2.getRoster())
+    {
+        std::cout << "  " << pl->getName() << "\n";
+    }
+
+    // 8. Suppose we test release
+    bool releaseOk = tradeManager.releasePlayer(&t1, &pA);
+    if (releaseOk)
+    {
+        std::cout << "[testTradeManager] " << t1.getName()
+            << " released " << pA.getName() << " to free agents.\n";
+    }
+
+    // Now pA is in freeAgents
+    // confirm
+    bool foundInFreeAgents = false;
+    for (auto* f : freeAgents)
+    {
+        if (f == &pA) { foundInFreeAgents = true; break; }
+    }
+    assert(foundInFreeAgents == true);
+
+    std::cout << "\nFinal rosters:\n";
+    std::cout << t1.getName() << ":\n";
+    for (auto* pl : t1.getRoster())
+    {
+        std::cout << "  " << pl->getName() << "\n";
+    }
+    std::cout << t2.getName() << ":\n";
+    for (auto* pl : t2.getRoster())
+    {
+        std::cout << "  " << pl->getName() << "\n";
+    }
+
+    // 9. Cleanup dynamic new 
+    // In a real sim, you'd manage lifetimes carefully. 
+    delete attr1; delete stats1;
+    delete attr2; delete stats2;
+    delete attr3; delete stats3;
+    delete attr4; delete stats4;
+
+    std::cout << "\n==== End of TradeManager Test ====\n";
+}
+
 int main()
 {
     std::cout << "Hello, Baseball Engine!\n\n";
@@ -1091,6 +1206,7 @@ int main()
     testStandings();
     testSeason();
     testLeague();
+    testTradeManager();
 
     std::cout << "All tests completed successfully.\n";
     return 0;

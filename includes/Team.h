@@ -21,6 +21,8 @@ namespace BBEngine
         // ----------------------------
         void addPlayer(Player* p);
         void removePlayer(Player* p);
+        // NEW: Checks if a player is on the team's roster
+        bool hasPlayer(Player* p) const;
 
         // ----------------------------
         // Lineup Methods

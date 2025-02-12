@@ -19,6 +19,7 @@ add_library(BaseballEngine
     src/Standings.cpp
     src/Season.cpp
     src/League.cpp
+    src/TradeManager.cpp
 )
 
 # Specify the include directories for this library
