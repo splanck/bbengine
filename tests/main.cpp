@@ -10,6 +10,7 @@
 #include "GameManager.h"
 #include "Schedule.h"
 #include "Standings.h"
+#include "Season.h"
 
 using namespace BBEngine;
 
@@ -943,6 +944,76 @@ void testStandings()
     std::cout << "==== End of Standings Test ====\n\n";
 }
 
+void testSeason()
+{
+    std::cout << "\n==== Testing Season ====\n\n";
+
+    // 1. Create some Teams
+    Team t1("TeamA", "MLB");
+    Team t2("TeamB", "MLB");
+    Team t3("TeamC", "MLB");
+
+    // In a real system, you might add players, lineups, etc. For Season's purposes, 
+    // we just need a handful of teams to pass into schedule/standings.
+
+    std::vector<Team*> teams = { &t1, &t2, &t3 };
+
+    // 2. Create a Schedule & generate games
+    Schedule schedule;
+    schedule.generateSchedule(teams);
+    // Possibly the schedule has 2 or 6 games, depending on your logic. 
+    // For 3 teams, we might see 6 games as each pair meets twice.
+
+    // 3. Create a Standings for these teams
+    Standings standings(teams);
+    // all starts at 0–0. 
+    // We can confirm:
+    for (const auto& rec : standings.getOverallStandings())
+    {
+        assert(rec.wins == 0 && rec.losses == 0);
+    }
+
+    // 4. Construct the Season
+    Season season(teams, &schedule, &standings);
+
+    season.startSeason();  // set flags
+
+    // We'll do a naive day-by-day approach:
+    // Let's see what dates we have in schedule. Typically might be day=1 or day=2 from your generation logic.
+
+    // We'll assume day 1.. day 5 might exist. We'll just do a loop:
+    for (int day = 1; day <= 5; ++day)
+    {
+        if (season.isSeasonOver())
+            break;  // done
+
+        std::cout << "Simulating day=" << day << "\n";
+        season.simulateDay(day);
+
+        if (season.isSeasonOver())
+        {
+            std::cout << "Season ended on day=" << day << "\n";
+            break;
+        }
+    }
+
+    // if not ended, finalize anyway
+    if (!season.isSeasonOver())
+        season.finalizeSeason();
+
+    // 5. Print final standings
+    auto finalStandings = standings.getOverallStandings();
+    std::cout << "\n--- Final Standings ---\n";
+    for (const auto& rec : finalStandings)
+    {
+        std::cout << " " << rec.team->getName()
+            << ": " << rec.wins << "-" << rec.losses
+            << "  GB=" << rec.gamesBehind << "\n";
+    }
+
+    std::cout << "==== End of Season Test ====\n\n";
+}
+
 int main()
 {
     std::cout << "Hello, Baseball Engine!\n\n";
@@ -958,6 +1029,7 @@ int main()
     testGameManagerRandomComprehensive();
     testSchedule();
     testStandings();
+    testSeason();
 
     std::cout << "All tests completed successfully.\n";
     return 0;
