@@ -11,6 +11,7 @@
 #include "Schedule.h"
 #include "Standings.h"
 #include "Season.h"
+#include "League.h"
 
 using namespace BBEngine;
 
@@ -1014,6 +1015,65 @@ void testSeason()
     std::cout << "==== End of Season Test ====\n\n";
 }
 
+
+void testLeague()
+{
+    std::cout << "\n==== Testing League ====\n\n";
+
+    // 1. Create a League
+    League league;
+
+    // 2. Add a few teams
+    Team yankees("Yankees", "MLB");
+    Team redSox("RedSox", "MLB");
+    Team mets("Mets", "MLB");
+
+    league.addTeam(&yankees);
+    league.addTeam(&redSox);
+    league.addTeam(&mets);
+
+    // 3. Start a new season with these teams
+    league.startNewSeason();
+
+    // 4. We'll day-by-day sim until the season is over or we reach day=30
+    for (int day = 1; day <= 30; ++day)
+    {
+        if (!league.getCurrentSeason())
+        {
+            // Means maybe the season didn't start or was finished
+            std::cout << "[testLeague] No current season!\n";
+            break;
+        }
+        if (league.getCurrentSeason()->isSeasonOver())
+        {
+            std::cout << "[testLeague] Season ended on or before day=" << day << "\n";
+            break;
+        }
+        league.advanceOneDay();
+    }
+
+    // 5. If there's still a season and it's not over, forcibly finish
+    if (league.getCurrentSeason() && !league.getCurrentSeason()->isSeasonOver())
+    {
+        std::cout << "[testLeague] forcibly finishing season.\n";
+        league.finishSeason();
+    }
+
+    // 6. Now check that we have a season archived
+    auto past = league.getPastSeasons();
+    if (!past.empty())
+    {
+        std::cout << "[testLeague] We have " << past.size()
+            << " past season(s) recorded.\n";
+    }
+    else
+    {
+        std::cout << "[testLeague] No completed seasons yet?\n";
+    }
+
+    std::cout << "==== End of League Test ====\n\n";
+}
+
 int main()
 {
     std::cout << "Hello, Baseball Engine!\n\n";
@@ -1030,6 +1090,7 @@ int main()
     testSchedule();
     testStandings();
     testSeason();
+    testLeague();
 
     std::cout << "All tests completed successfully.\n";
     return 0;

@@ -18,6 +18,7 @@ add_library(BaseballEngine
     src/Schedule.cpp
     src/Standings.cpp
     src/Season.cpp
+    src/League.cpp
 )
 
 # Specify the include directories for this library
