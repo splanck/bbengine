@@ -20,12 +20,13 @@ add_library(BaseballEngine
     src/Season.cpp
     src/League.cpp
     src/TradeManager.cpp
+    src/InjuryManager.cpp
 )
 
 # Specify the include directories for this library
 target_include_directories(BaseballEngine PUBLIC
     \/include
-    includes
+    inc
 )
 
 # Optionally create a test executable

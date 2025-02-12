@@ -13,6 +13,7 @@
 #include "Season.h"
 #include "League.h"
 #include "TradeManager.h"
+#include "InjuryManager.h"
 
 using namespace BBEngine;
 
@@ -1189,6 +1190,80 @@ void testTradeManager()
     std::cout << "\n==== End of TradeManager Test ====\n";
 }
 
+void testInjuryManager()
+{
+    std::cout << "\n==== Testing InjuryManager ====\n\n";
+
+    // 1. Create some Teams and Players
+    Team t1("TeamOne", "MLB");
+    Team t2("TeamTwo", "MLB");
+
+    PlayerAttributes* attr1 = new PlayerAttributes();
+    PlayerStats* stats1 = new PlayerStats();
+    Player pA("PlayerA", 26, Handedness::Right, attr1, stats1);
+
+    PlayerAttributes* attr2 = new PlayerAttributes();
+    PlayerStats* stats2 = new PlayerStats();
+    Player pB("PlayerB", 29, Handedness::Left, attr2, stats2);
+
+    // 2. Add them to teams
+    t1.addPlayer(&pA);
+    t2.addPlayer(&pB);
+
+    // 3. Make a vector of Teams so the InjuryManager can find them
+    std::vector<Team*> leagueTeams = { &t1, &t2 };
+
+    // 4. Construct the InjuryManager
+    InjuryManager injuryMgr(leagueTeams);
+
+    // 5. Injure PlayerA for 10 days
+    injuryMgr.injurePlayer(&pA, "Hamstring strain", 10, 2);
+    // verify PlayerA is not on TeamOne's active roster now
+    assert(!t1.hasPlayer(&pA));
+
+    // 6. Check isPlayerInjured
+    bool injA = injuryMgr.isPlayerInjured(&pA);
+    assert(injA == true);
+
+    // 7. Decrement 5 days
+    injuryMgr.decrementInjuryTimers(5);
+    // Now PlayerA should have 5 days left
+    {
+        auto info = injuryMgr.getInjuryInfo(&pA);
+        assert(info.daysRemaining == 5);
+        std::cout << "[test] " << pA.getName() << " has " << info.daysRemaining << " days left.\n";
+    }
+
+    // 8. Decrement 5 more => total 10 => should be recovered
+    injuryMgr.decrementInjuryTimers(5);
+
+    // confirm he's no longer in injuries
+    bool injA2 = injuryMgr.isPlayerInjured(&pA);
+    assert(injA2 == false);
+
+    // The manager says "activated" but doesn't automatically re-add to roster in this design
+    // So if we want him back, we must do it ourselves:
+    t1.addPlayer(&pA);
+
+    // 9. Suppose we injure PlayerB for 3 days
+    injuryMgr.injurePlayer(&pB, "Elbow soreness", 3);
+    // Should remove from TeamTwo's roster
+    assert(!t2.hasPlayer(&pB));
+
+    // 10. Then we forcibly call activatePlayer early?
+    // that might be an error if we want to wait. We'll do it anyway
+    injuryMgr.activatePlayer(&pB);
+
+    // pB is no longer in injuries, but also not on t2's roster yet. We can re-add:
+    t2.addPlayer(&pB);
+
+    // 11. Clean up
+    delete attr1; delete stats1;
+    delete attr2; delete stats2;
+
+    std::cout << "\n==== End of InjuryManager Test ====\n";
+}
+
 int main()
 {
     std::cout << "Hello, Baseball Engine!\n\n";
@@ -1207,6 +1282,7 @@ int main()
     testSeason();
     testLeague();
     testTradeManager();
+    testInjuryManager();
 
     std::cout << "All tests completed successfully.\n";
     return 0;
