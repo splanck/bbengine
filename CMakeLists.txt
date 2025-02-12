@@ -16,6 +16,7 @@ add_library(BaseballEngine
     src/Simulator.cpp
     src/GameManager.cpp
     src/Schedule.cpp
+    src/Standings.cpp
 )
 
 # Specify the include directories for this library

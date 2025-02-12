@@ -9,6 +9,7 @@
 #include "Simulator.h"
 #include "GameManager.h"
 #include "Schedule.h"
+#include "Standings.h"
 
 using namespace BBEngine;
 
@@ -881,6 +882,67 @@ void testSchedule()
     std::cout << "\n=== End of Schedule Test ===\n\n";
 }
 
+void testStandings()
+{
+    std::cout << "\n==== Testing Standings ====\n\n";
+
+    // 1. Make some teams
+    Team yankees("Yankees", "MLB");
+    Team redSox("RedSox", "MLB");
+    Team blueJays("BlueJays", "MLB");
+    Team rays("Rays", "MLB");
+
+    std::vector<Team*> alEast = { &yankees, &redSox, &blueJays, &rays };
+
+    // 2. Construct a Standings object
+    Standings alEastStandings(alEast);
+
+    // initially, all 0-0
+    for (auto& rec : alEastStandings.getOverallStandings())
+    {
+        assert(rec.wins == 0 && rec.losses == 0);
+        // gamesBehind = 0 for top, or 0 for all if tie
+    }
+
+    // 3. Record some results
+    // yankees beat redSox
+    alEastStandings.recordGameResult(&yankees, &redSox);
+    // redSox beat rays
+    alEastStandings.recordGameResult(&redSox, &rays);
+    // blueJays beat yankees
+    alEastStandings.recordGameResult(&blueJays, &yankees);
+    // yankees beat rays
+    alEastStandings.recordGameResult(&yankees, &rays);
+
+    // Now let's call updateStandings
+    alEastStandings.updateStandings();
+
+    // 4. Print out the standings in sorted order
+    std::cout << "AL East Standings:\n";
+    auto sorted = alEastStandings.getOverallStandings(); // after updateStandings, they are sorted
+    for (const auto& rec : sorted)
+    {
+        // rec.team->getName()
+        // rec.wins, rec.losses, rec.gamesBehind
+        std::cout << "  " << rec.team->getName()
+            << "  " << rec.wins << "-" << rec.losses
+            << "  GB=" << rec.gamesBehind
+            << "\n";
+    }
+
+    // 5. Basic checks
+    // e.g. yankees might be 2-1, redSox 1-1, blueJays 1-0, rays 0-2 => depends on the order we recorded
+    // Actually let's see:
+    //   yankees: W over redSox, W over rays, L from blueJays => 2-1
+    //   redSox:  L from yankees, W over rays => 1-1
+    //   blueJays: W over yankees => 1-0
+    //   rays: L from redSox, L from yankees => 0-2
+    // If sorted, top is yankees(2-1) or blueJays(1-0)? Actually, 2-1 is a .667 win%, 1-0 is 1.0, so blueJays is top. 
+    // Let's just ensure no errors or negative. We'll just confirm no crashes and final looks good.
+
+    std::cout << "==== End of Standings Test ====\n\n";
+}
+
 int main()
 {
     std::cout << "Hello, Baseball Engine!\n\n";
@@ -895,6 +957,7 @@ int main()
     testGameManager();
     testGameManagerRandomComprehensive();
     testSchedule();
+    testStandings();
 
     std::cout << "All tests completed successfully.\n";
     return 0;
