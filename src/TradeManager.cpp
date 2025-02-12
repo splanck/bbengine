@@ -164,7 +164,7 @@ namespace BBEngine
     {
         // check if team->roster.size() + newPlayers.size() <= maxActiveRoster
         // For demonstration, let's do that logic
-        int currentSize = team->getRoster().size();
+        size_t currentSize = static_cast<int>(team->getRoster().size());
         int needed = static_cast<int>(newPlayers.size());
         if (currentSize + needed > maxActiveRoster)
         {

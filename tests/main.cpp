@@ -14,6 +14,7 @@
 #include "League.h"
 #include "TradeManager.h"
 #include "InjuryManager.h"
+#include "StatsManager.h"
 
 using namespace BBEngine;
 
@@ -1264,6 +1265,125 @@ void testInjuryManager()
     std::cout << "\n==== End of InjuryManager Test ====\n";
 }
 
+#include "StatsManager.h"
+#include "Player.h"
+#include "PlayerStats.h"
+#include "PlayerAttributes.h"
+#include <iostream>
+#include <cassert>
+
+using namespace BBEngine;
+
+void testStatsManager()
+{
+    std::cout << "\n===== Testing StatsManager with 'Add' Style Methods =====\n\n";
+
+    // 1) Create some players with PlayerStats, fill them by "adding" stats
+    PlayerAttributes* attrA = new PlayerAttributes();
+    PlayerStats* statsA = new PlayerStats();
+    // We'll add 100 AB, 35 hits => .350 average, 5 doubles, 1 triple, 5 HR, 10 BB, 30 RBI
+    statsA->addAtBats(100);
+    statsA->addHits(35);
+    statsA->addDoubles(5);
+    statsA->addTriples(1);
+    statsA->addHomeRuns(5);
+    statsA->addWalks(10);
+    statsA->addRBIs(30);
+
+    Player pA("PlayerA", 24, Handedness::Right, attrA, statsA);
+
+    PlayerAttributes* attrB = new PlayerAttributes();
+    PlayerStats* statsB = new PlayerStats();
+    // 200 AB, 50 hits => .250 average, 10 doubles, 0 triple, 12 HR, 20 BB, 55 RBI
+    statsB->addAtBats(200);
+    statsB->addHits(50);
+    statsB->addDoubles(10);
+    statsB->addTriples(0);
+    statsB->addHomeRuns(12);
+    statsB->addWalks(20);
+    statsB->addRBIs(55);
+
+    Player pB("PlayerB", 30, Handedness::Left, attrB, statsB);
+
+    // Another player, maybe a pitcher
+    PlayerAttributes* attrC = new PlayerAttributes();
+    PlayerStats* statsC = new PlayerStats();
+    // Suppose he's a pitcher => add 60.2 innings, 22 earned runs => ~3.27 ERA, plus 18 walks, 50 hits allowed
+    statsC->addInningsPitched(60.2);
+    statsC->addEarnedRuns(22);
+    statsC->addWalksAllowed(18);
+    statsC->addHitsAllowed(50);
+
+    Player pC("PitcherC", 29, Handedness::Right, attrC, statsC);
+
+    // 2) Construct StatsManager, register them
+    StatsManager statsMan;
+    statsMan.registerPlayer(&pA);
+    statsMan.registerPlayer(&pB);
+    statsMan.registerPlayer(&pC);
+
+    // 3) Show top HR hitters descending
+    {
+        auto hrLeaders = statsMan.getLeaders("HR", 5, false); // descending
+        std::cout << "Top HR hitters:\n";
+        for (const auto& kv : hrLeaders)
+        {
+            std::cout << "  " << kv.first->getName() << " => " << kv.second << " HR\n";
+        }
+    }
+
+    // 4) Show top 2 batting average ascending = false => highest first
+    {
+        auto avgLeaders = statsMan.getLeaders("AVG", 2, false);
+        std::cout << "\nTop 2 Batting AVG:\n";
+        for (const auto& kv : avgLeaders)
+        {
+            std::cout << "  " << kv.first->getName() << " => " << kv.second << "\n";
+        }
+    }
+
+    // 5) Show "ERA" in ascending order
+    {
+        auto eraLeaders = statsMan.getLeaders("ERA", 5, true);
+        std::cout << "\nERA Leaderboard (lowest first):\n";
+        for (const auto& kv : eraLeaders)
+        {
+            std::cout << "  " << kv.first->getName()
+                << " => " << kv.second << " ERA\n";
+        }
+    }
+
+    // 6) Example all-time record for HR
+    statsMan.checkAndUpdateAllTimeRecord(&pB, "HR");
+    statsMan.checkAndUpdateAllTimeRecord(&pA, "HR");
+    try
+    {
+        auto rec = statsMan.getAllTimeRecord("HR");
+        std::cout << "\nAll-Time HR record is " << rec.recordValue
+            << " by " << rec.recordHolder->getName() << "\n";
+    }
+    catch (const std::exception& ex)
+    {
+        std::cerr << "No record found for HR?\n" << ex.what() << "\n";
+    }
+
+    // 7) A team aggregator example
+    Team teamOne("TeamOne", "MLB");
+    teamOne.addPlayer(&pA);
+    teamOne.addPlayer(&pB);
+
+    double sumHR = statsMan.getTeamStat(&teamOne, "HR", "SUM");
+    std::cout << "\nTeamOne total HR = " << sumHR << "\n"; // pA=5, pB=12 => 17
+
+    // 8) Clean up
+    delete attrA; delete statsA;
+    delete attrB; delete statsB;
+    delete attrC; delete statsC;
+
+    std::cout << "\n===== End of StatsManager Test with 'Add' Style Methods =====\n";
+}
+
+
 int main()
 {
     std::cout << "Hello, Baseball Engine!\n\n";
@@ -1283,6 +1403,8 @@ int main()
     testLeague();
     testTradeManager();
     testInjuryManager();
+    testStatsManager();
+
 
     std::cout << "All tests completed successfully.\n";
     return 0;

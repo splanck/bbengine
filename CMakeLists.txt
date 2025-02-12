@@ -21,6 +21,7 @@ add_library(BaseballEngine
     src/League.cpp
     src/TradeManager.cpp
     src/InjuryManager.cpp
+    src/StatsManager.cpp
 )
 
 # Specify the include directories for this library
