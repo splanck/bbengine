@@ -33,6 +33,7 @@ target_include_directories(BaseballEngine PUBLIC
 # Optionally create a test executable
 add_executable(BaseballEngineTest
     tests/main.cpp
+#    tests/gamesim.cpp
 )
 
 # Link the library to the test executable
